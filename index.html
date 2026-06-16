@@ -375,8 +375,9 @@
         if (/^3[47]/.test(n)) return 'AMEX';
         if (/^5895|^4029|^3777/.test(n)) return 'NARANJA';
         if (/^6008/.test(n)) return 'CENCOSUD';
-        if (/^6042/.test(n)) return 'CABAL';
-        if (/^4(517|508|152|282|310)/.test(n) || /^(50|56|57|58|67)/.test(n) || /^5896/.test(n)) return 'DEBITO';
+        // Cabal: todos los rangos BIN oficiales (603522, 604201-604202, 6042, 6043, 6044, 6045, 589657, 589658)
+        if (/^603522/.test(n) || /^60(42|43|44|45)/.test(n) || /^589657|^589658/.test(n)) return 'CABAL';
+        if (/^4(517|508|152|282|310)/.test(n) || /^(50|56|57|58)/.test(n) || /^5896/.test(n)) return 'DEBITO';
         if (/^4/.test(n)) return 'VISA';
         if (/^5[1-5]|^2[2-7]/.test(n)) return 'MASTERCARD';
         return '';
